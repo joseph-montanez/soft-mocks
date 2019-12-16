@@ -12,6 +12,7 @@ function replaceSomething($string) : string
 
 class SomeClass
 {
+    const E = M_E;
     public $a = 1;
 
     public function methodReturn() : string
@@ -67,5 +68,14 @@ class SomeClass
     public function methodWithDifferentParamsTypes($a, $b, ...$args)
     {
         return $a . $b . sizeof($args);
+    }
+
+    public static function methodWithNamedFunctionDefinition()
+    {
+        function SomeClass_methodWithNamedFunctionDefinition()
+        {
+            return SomeClass::E;
+        }
+        return SomeClass_methodWithNamedFunctionDefinition();
     }
 }

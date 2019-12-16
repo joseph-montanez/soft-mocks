@@ -12,6 +12,7 @@ function replaceSomething($string) : string{
 
 class SomeClass{
     
+    const E = M_E;
     public $a = 1;
     
     public function methodReturn() : string{if (false !== ($__softmocksvariableforcode = \Badoo\SoftMocks::isMocked(SomeClass::class, static::class, __FUNCTION__))) {$mm_func_args = func_get_args();$params = [];$variadic_params_idx = '';return eval($__softmocksvariableforcode);/** @codeCoverageIgnore */}
@@ -66,4 +67,13 @@ class SomeClass{
     
     public function methodWithDifferentParamsTypes($a, $b, ...$args){if (false !== ($__softmocksvariableforcode = \Badoo\SoftMocks::isMocked(SomeClass::class, static::class, __FUNCTION__))) {$mm_func_args = func_get_args();$params = [$a, $b, $args];$variadic_params_idx = '2';return eval($__softmocksvariableforcode);/** @codeCoverageIgnore */}
         
-        return $a . $b . \Badoo\SoftMocks::callFunction(__NAMESPACE__, 'sizeof', [$args]);}}
+        return $a . $b . \Badoo\SoftMocks::callFunction(__NAMESPACE__, 'sizeof', [$args]);}
+    
+    
+    public static function methodWithNamedFunctionDefinition(){if (false !== ($__softmocksvariableforcode = \Badoo\SoftMocks::isMocked(SomeClass::class, static::class, __FUNCTION__))) {$mm_func_args = func_get_args();$params = [];$variadic_params_idx = '';return eval($__softmocksvariableforcode);/** @codeCoverageIgnore */}
+        
+        function SomeClass_methodWithNamedFunctionDefinition(){
+            
+            return \Badoo\SoftMocks::getClassConst(SomeClass::class, 'E', null);}
+        
+        return \Badoo\SoftMocks::callFunction(__NAMESPACE__, 'SomeClass_methodWithNamedFunctionDefinition', []);}}

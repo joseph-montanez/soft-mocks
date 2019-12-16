@@ -2212,6 +2212,7 @@ class SoftMocksTraverser extends \PhpParser\NodeVisitorAbstract
     private $in_closure_level = 0;
     private $has_yield = false;
     private $cur_class = '';
+    private $cur_class_stack = [];
 
     public function __construct($filename)
     {
@@ -2296,6 +2297,21 @@ class SoftMocksTraverser extends \PhpParser\NodeVisitorAbstract
     {
         $this->cur_class = $Node->name;
         $this->in_interface = true;
+    }
+
+    public function beforeStmt_Function(\PhpParser\Node\Stmt\Function_ $Node)
+    {
+        if ($this->cur_class) {
+            array_push($this->cur_class_stack, $this->cur_class);
+            $this->cur_class = false;
+        }
+    }
+
+    public function rewriteStmt_Function()
+    {
+        if ($this->cur_class_stack) {
+            $this->cur_class = array_pop($this->cur_class_stack);
+        }
     }
 
     public function rewriteStmt_Interface()
