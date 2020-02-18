@@ -1040,6 +1040,13 @@ class SoftMocks
         return md5($clean_filepath . ':' . $md5_file);
     }
 
+    /**
+     * This is not public API actually, supposed to be used for IDE integrations.
+     *
+     * @internal
+     *
+     * @return string
+     */
     public static function getRewrittentFilePathPrefix()
     {
         return self::$mocks_cache_path . self::getMocksDirVersion();
