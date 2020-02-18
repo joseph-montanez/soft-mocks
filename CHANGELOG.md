@@ -4,6 +4,12 @@
 
 There are next changes:
 
+## v3.0.2
+
+There are next changes:
+
+- fixed patches for phpunit 8.x
+
 ## v3.0.1
 
 There are next changes:
