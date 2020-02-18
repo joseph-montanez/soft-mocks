@@ -387,6 +387,26 @@ class SoftMocksPrinter extends \PhpParser\PrettyPrinter\Standard
     }
 }
 
+class SoftMocksParseError extends \PhpParser\Error
+{
+    public function __construct(string $file_path, \PhpParser\Error $Error)
+    {
+        parent::__construct("File: {$file_path}, message: {$error->getMessage()}", $Error->getAttributes());
+    }
+}
+
+class SoftMocksParseErrorHandler implements \PhpParser\ErrorHandler {
+    private $orig_file;
+    public function __construct($orig_file)
+    {
+        $this->orig_file = $orig_file;
+    }
+
+    public function handleError(\PhpParser\Error $error) {
+        throw new SoftMocksParseError($this->orig_file, $error);
+    }
+}
+
 class SoftMocks
 {
     const MOCKS_CACHE_TOUCHTIME = 86400; // 1 day
@@ -1615,8 +1635,10 @@ class SoftMocks
         $traverser->addVisitor(new SoftMocksTraverser($orig_file));
 
         $prettyPrinter = new SoftMocksPrinter();
+        $errorHandler = new SoftMocksParseErrorHandler($orig_file);
+
         $parser = (new \PhpParser\ParserFactory)->create(\PhpParser\ParserFactory::ONLY_PHP7, new \PhpParser\Lexer());
-        $stmts = $parser->parse($contents);
+        $stmts = $parser->parse($contents, $errorHandler);
         $stmts = $traverser->traverse($stmts);
 
         return $prettyPrinter->prettyPrintFile($stmts);
