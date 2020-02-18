@@ -391,7 +391,7 @@ class SoftMocksParseError extends \PhpParser\Error
 {
     public function __construct(string $file_path, \PhpParser\Error $Error)
     {
-        parent::__construct("File: {$orig_file}, message: {$error->getMessage()}", $Error->getAttributes());
+        parent::__construct("File: {$file_path}, message: {$error->getMessage()}", $Error->getAttributes());
     }
 }
 
