@@ -1040,7 +1040,7 @@ class SoftMocks
         return md5($clean_filepath . ':' . $md5_file);
     }
 
-    private static function getRewrittentFilePathPrefix()
+    public static function getRewrittentFilePathPrefix()
     {
         return self::$mocks_cache_path . self::getMocksDirVersion();
     }
