@@ -2803,7 +2803,7 @@ class SoftMocksTest extends \PHPUnit\Framework\TestCase
 
     public function providerInvalid()
     {
-        $files = glob(__DIR__ . '/fixtures/invalid/*.php');
+        $files = glob(__DIR__ . '/fixtures/invalid/*.phpi');
         $result = array_map(
             function ($filename) {
                 return [basename($filename)];
