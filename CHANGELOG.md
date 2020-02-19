@@ -4,11 +4,18 @@
 
 There are next changes:
 
+## v3.0.3
+
+There are next changes:
+
+- fix refer to class const from named function declared in method
+- add error handler for php parser errors
+
 ## v3.0.2
 
 There are next changes:
 
-- fixed patches for phpunit 8.x
+- fix patches for phpunit 8.x
 
 ## v3.0.1
 
