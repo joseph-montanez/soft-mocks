@@ -1,6 +1,6 @@
 language: php
 
-sudo: false
+os: linux
 dist: trusty
 
 php:
@@ -27,6 +27,7 @@ before_script:
     fi
   - mkdir -p /tmp/mocks/
   - rm -rf /tmp/mocks_changed/
+  - vendor/bin/phpunit --version
 
 script:
   - vendor/bin/phpunit --verbose --colors --coverage-clover=coverage.clover

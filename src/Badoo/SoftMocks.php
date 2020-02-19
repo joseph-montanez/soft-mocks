@@ -387,6 +387,29 @@ class SoftMocksPrinter extends \PhpParser\PrettyPrinter\Standard
     }
 }
 
+class SoftMocksParseError extends \PhpParser\Error
+{
+    public function __construct(string $file_path, \PhpParser\Error $Error)
+    {
+        parent::__construct("File: {$file_path}, message: {$Error->getMessage()}", $Error->getAttributes());
+    }
+}
+
+class SoftMocksParseErrorHandler implements \PhpParser\ErrorHandler
+{
+    private $orig_file;
+
+    public function __construct($orig_file)
+    {
+        $this->orig_file = $orig_file;
+    }
+
+    public function handleError(\PhpParser\Error $error)
+    {
+        throw new SoftMocksParseError($this->orig_file, $error);
+    }
+}
+
 class SoftMocks
 {
     const MOCKS_CACHE_TOUCHTIME = 86400; // 1 day
@@ -1040,7 +1063,14 @@ class SoftMocks
         return md5($clean_filepath . ':' . $md5_file);
     }
 
-    private static function getRewrittentFilePathPrefix()
+    /**
+     * This is not public API actually, supposed to be used for IDE integrations.
+     *
+     * @internal
+     *
+     * @return string
+     */
+    public static function getRewrittentFilePathPrefix()
     {
         return self::$mocks_cache_path . self::getMocksDirVersion();
     }
@@ -1608,8 +1638,10 @@ class SoftMocks
         $traverser->addVisitor(new SoftMocksTraverser($orig_file));
 
         $prettyPrinter = new SoftMocksPrinter();
+        $errorHandler = new SoftMocksParseErrorHandler($orig_file);
+
         $parser = (new \PhpParser\ParserFactory)->create(\PhpParser\ParserFactory::ONLY_PHP7, new \PhpParser\Lexer());
-        $stmts = $parser->parse($contents);
+        $stmts = $parser->parse($contents, $errorHandler);
         $stmts = $traverser->traverse($stmts);
 
         return $prettyPrinter->prettyPrintFile($stmts);
@@ -2180,6 +2212,7 @@ class SoftMocksTraverser extends \PhpParser\NodeVisitorAbstract
     private $in_closure_level = 0;
     private $has_yield = false;
     private $cur_class = '';
+    private $cur_class_stack = [];
 
     public function __construct($filename)
     {
@@ -2264,6 +2297,21 @@ class SoftMocksTraverser extends \PhpParser\NodeVisitorAbstract
     {
         $this->cur_class = $Node->name;
         $this->in_interface = true;
+    }
+
+    public function beforeStmt_Function(\PhpParser\Node\Stmt\Function_ $Node)
+    {
+        if ($this->cur_class) {
+            array_push($this->cur_class_stack, $this->cur_class);
+            $this->cur_class = false;
+        }
+    }
+
+    public function rewriteStmt_Function()
+    {
+        if ($this->cur_class_stack) {
+            $this->cur_class = array_pop($this->cur_class_stack);
+        }
     }
 
     public function rewriteStmt_Interface()
