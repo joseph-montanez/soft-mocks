@@ -2800,4 +2800,37 @@ class SoftMocksTest extends \PHPUnit\Framework\TestCase
         self::assertSame(2, ClassWithCallViaVariable::callA());
         self::assertSame(2, ClassWithCallViaVariable::callAViaVariable());
     }
+
+    public function providerInvalid()
+    {
+        $files = glob(__DIR__ . '/fixtures/invalid/*.php');
+        $result = array_map(
+            function ($filename) {
+                return [basename($filename)];
+            },
+            $files
+        );
+        return array_combine(array_column($result, 0), $result);
+    }
+
+    /**
+     * @dataProvider providerInvalid
+     *
+     * @param $filename
+     */
+    public function testParseErrors($filename)
+    {
+        $filename = __DIR__ . '/fixtures/invalid/' . $filename;
+
+        $exception_message = "File: {$filename}, message: File: {$filename}";
+        if (\method_exists($this, 'expectExceptionMessage')) {
+            $this->expectException(\Badoo\SoftMocksParseError::class);
+            $this->expectExceptionMessage($exception_message);
+        } else {
+            // for phpunit 4.x
+            $this->setExpectedException(\RuntimeException::class, $exception_message);
+        }
+
+        \Badoo\SoftMocks::rewrite($filename);
+    }
 }
