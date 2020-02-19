@@ -395,14 +395,17 @@ class SoftMocksParseError extends \PhpParser\Error
     }
 }
 
-class SoftMocksParseErrorHandler implements \PhpParser\ErrorHandler {
+class SoftMocksParseErrorHandler implements \PhpParser\ErrorHandler
+{
     private $orig_file;
+
     public function __construct($orig_file)
     {
         $this->orig_file = $orig_file;
     }
 
-    public function handleError(\PhpParser\Error $error) {
+    public function handleError(\PhpParser\Error $error)
+    {
         throw new SoftMocksParseError($this->orig_file, $error);
     }
 }
