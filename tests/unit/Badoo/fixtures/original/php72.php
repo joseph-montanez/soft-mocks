@@ -1,13 +1,10 @@
 <?php
 
-use Foo\Bar\{
-    Baz1,
-    Baz2,
-};
+use Foo\Bar\{Baz1, Baz2,};
 
 function a($cnt)
 {
-    return str_pad('a', $cnt);
+    return str_pad('a', intval($cnt));
 }
 
 function o() : object
@@ -16,3 +13,5 @@ function o() : object
     $o->value = a(1);
     return $o;
 }
+
+echo 'end';
