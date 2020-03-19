@@ -12,12 +12,14 @@ HERE
 
 
 
+
 function n($cnt){
     
     return \Badoo\SoftMocks::callFunction(__NAMESPACE__, 'str_repeat', [<<<'NOW'
 123 {$cnt}
 NOW
  . \Badoo\SoftMocks::callFunction(__NAMESPACE__, 'chr', [123]), \Badoo\SoftMocks::callFunction(__NAMESPACE__, 'intval', [$cnt])]);}
+
 
 
 
