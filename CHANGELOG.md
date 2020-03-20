@@ -4,6 +4,8 @@
 
 There are next changes:
 
+- PHP 7.2, 7.3 and 7.4 language features support
+
 ## v3.0.3
 
 There are next changes:

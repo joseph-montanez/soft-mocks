@@ -2690,8 +2690,20 @@ class SoftMocksTest extends \PHPUnit\Framework\TestCase
      */
     public function testRewrite($filename)
     {
-        if (($filename === 'php71.php')) {
+        if ($filename === 'php71.php') {
             static::markTestSkippedForPHPVersionBelow('7.1.0');
+        }
+
+        if ($filename === 'php72.php') {
+            static::markTestSkippedForPHPVersionBelow('7.2.0');
+        }
+
+        if ($filename === 'php73.php') {
+            static::markTestSkippedForPHPVersionBelow('7.3.0');
+        }
+
+        if ($filename === 'php74.php') {
+            static::markTestSkippedForPHPVersionBelow('7.4.0');
         }
 
         $result = \Badoo\SoftMocks::rewrite(__DIR__ . '/fixtures/original/' . $filename);
