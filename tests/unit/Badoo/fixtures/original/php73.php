@@ -1,5 +1,16 @@
 <?php
 
+$array = [1, 2];
+list($a, &$b) = $array;
+
+$parts = explode(
+    ",",
+    implode(
+        ",",
+        ["a", "b", "c"],
+    ),
+);
+
 function h($cnt)
 {
     return str_repeat(
