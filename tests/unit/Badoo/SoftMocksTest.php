@@ -2702,6 +2702,10 @@ class SoftMocksTest extends \PHPUnit\Framework\TestCase
             static::markTestSkippedForPHPVersionBelow('7.3.0');
         }
 
+        if ($filename === 'php74.php') {
+            static::markTestSkippedForPHPVersionBelow('7.4.0');
+        }
+
         $result = \Badoo\SoftMocks::rewrite(__DIR__ . '/fixtures/original/' . $filename);
         $this->assertNotFalse($result, "Rewrite failed");
 
