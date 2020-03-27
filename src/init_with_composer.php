@@ -36,8 +36,13 @@ require_once "{$php_parser_dir}Lexer/TokenEmulator/TokenEmulatorInterface.php";
 require_once "{$php_parser_dir}Node/Expr.php";
 require_once "{$php_parser_dir}Node/FunctionLike.php";
 // for prevent autoload problems
-$files = [];
-exec('find ' . escapeshellarg($php_parser_dir) . " -type f -name '*.php'", $files);
+$directory = new \RecursiveDirectoryIterator($php_parser_dir);
+$iterator = new \RecursiveIteratorIterator($directory);
+$regexFiles = new \RegexIterator($iterator, '/^.+\.php$/i', \RecursiveRegexIterator::GET_MATCH);
+$files = array();
+foreach ($regexFiles as $file) {
+    $files[] = str_replace(realpath(__DIR__ . '../../../..') . '/', '', realpath($file[0]));
+}
 sort($files);
 foreach ($files as $file) {
     require_once $file;
@@ -45,7 +50,7 @@ foreach ($files as $file) {
 unset($php_parser_dir, $files, $file);
 
 /* Soft Mocks init */
-require_once(dirname(__DIR__) . "/src/Badoo/SoftMocks.php");
+require_once(__DIR__ . "/Badoo/SoftMocks.php");
 SoftMocks::setVendorPath(dirname($composer_install));
 SoftMocks::setIgnoreSubPaths(
     array(

@@ -469,7 +469,7 @@ class SoftMocks
     ];
     private static $base_paths = [];
     private static $prepare_for_rewrite_callback;
-    private static $lock_file_path = '/tmp/mocks/soft_mocks_rewrite.lock';
+    private static $lock_file_path;
 
     protected static function getEnvironment($key)
     {
@@ -485,9 +485,16 @@ class SoftMocks
         if (!self::$mocks_cache_path) {
             $mocks_cache_path = (string)static::getEnvironment('SOFT_MOCKS_CACHE_PATH');
             if (!$mocks_cache_path) {
-                $mocks_cache_path = '/tmp/mocks/';
+                $mocks_cache_path = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'mocks';
             }
             self::setMocksCachePath($mocks_cache_path);
+        }
+        if (!self::$lock_file_path) {
+            $lock_file_path = (string)static::getEnvironment('SOFT_MOCKS_LOCK_PATH');
+            if (!$lock_file_path) {
+                $lock_file_path = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'mocks' . DIRECTORY_SEPARATOR . 'soft_mocks_rewrite.lock';
+            }
+            self::setLockFilePath($lock_file_path);
         }
         // todo constant will be removed in next major release, because it's like project path.
         if (!defined('SOFTMOCKS_ROOT_PATH')) {
@@ -495,7 +502,7 @@ class SoftMocks
              * @deprecated use \Badoo\SoftMocks::setProjectPath() instead
              * @see \Badoo\SoftMocks::setProjectPath()
              */
-            define('SOFTMOCKS_ROOT_PATH', '/');
+            define('SOFTMOCKS_ROOT_PATH', "C:\\");
         }
 
         if (!empty(static::getEnvironment('SOFT_MOCKS_DEBUG'))) {
@@ -1147,7 +1154,7 @@ class SoftMocks
             throw new \RuntimeException('File should not be empty');
         }
         // if path is not absolute
-        if ($file[0] !== '/') {
+        if ($file[0] !== '/' && substr($file[0], 1, 2) !== ":\\") {
             // skip stream
             $path_info = parse_url($file);
             if (isset($path_info['scheme'])) {
@@ -1225,9 +1232,10 @@ class SoftMocks
             $base_mocks_path = self::$mocks_cache_path;
             $relative_target_dir = mb_orig_substr($target_dir, mb_orig_strlen($base_mocks_path));
         }
-        self::createDirRecursive($base_mocks_path, $relative_target_dir);
+        $new_path = self::createDirRecursive($base_mocks_path, $relative_target_dir);
 
-        $tmp_file = $target_file . ".tmp." . uniqid(getmypid());
+        $target_dir = $new_path;
+        $tmp_file = $target_dir . DIRECTORY_SEPARATOR . basename($target_file) . ".tmp." . uniqid(getmypid());
         $wrote = file_put_contents($tmp_file, $contents);
         $expected_bytes = mb_orig_strlen($contents);
         if ($wrote !== $expected_bytes) {
@@ -1250,6 +1258,35 @@ class SoftMocks
         }
     }
 
+    public static function canonicalizePath($path, $cwd=null) {
+
+        // don't prefix absolute paths
+        if (substr($path, 0, 1) === "/") {
+            $filename = $path;
+        }
+
+        // prefix relative path with $root
+        else {
+            $root      = is_null($cwd) ? getcwd() : $cwd;
+            $filename  = sprintf("%s/%s", $root, $path);
+        }
+
+        // get realpath of dirname
+        $dirname   = dirname($filename);
+        $canonical = realpath($dirname);
+
+        // trigger error if $dirname is nonexistent
+//        if ($canonical === false) {
+//            trigger_error(sprintf("Directory `%s' does not exist", $dirname), E_USER_ERROR);
+//        }
+
+        // prevent double slash "//" below
+        if ($canonical === "/") $canonical = null;
+
+        // return canonicalized path
+        return sprintf("%s/%s", $canonical, basename($filename));
+    }
+
     /**
      * Create dir recursive
      * if create dirs recursive using mkdir with $recursive = true, then there can be race conditions, for example:
@@ -1269,18 +1306,33 @@ class SoftMocks
      */
     private static function createDirRecursive($base_dir, $relative_target_dir)
     {
+        preg_match('/^[A-Z]:/i', $relative_target_dir, $matches);
+        $drive_letter = '';
+        if ($matches[0]) {
+            $drive_letter = str_replace(':', '', $matches[0]);
+            $base_dir = '/' . $drive_letter;
+            $relative_target_dir = substr($relative_target_dir, 3, strlen($relative_target_dir) - 1);
+            $relative_target_dir = str_replace(DIRECTORY_SEPARATOR, '/', $relative_target_dir);
+        }
         $current_dir = $base_dir;
-        foreach (explode(DIRECTORY_SEPARATOR, $relative_target_dir) as $sub_dir) {
-            $current_dir .= DIRECTORY_SEPARATOR . $sub_dir;
-            if (!is_dir($current_dir) && !mkdir($current_dir, 0777) && !is_dir($current_dir)) {
-                $error = error_get_last();
-                $message = '';
-                if (is_array($error)) {
-                    $message = ", error: {$error['message']}";
+
+        foreach (explode('/', $relative_target_dir) as $sub_dir) {
+            $current_dir .= '/' . $sub_dir;
+            if (!is_dir($current_dir) && !mkdir($current_dir, 0777)) {
+                $abs_path = str_replace( "$drive_letter:\\$drive_letter\\", "$drive_letter:\\", realpath(str_replace('/', '\\', $current_dir)));
+                if (!is_dir($abs_path)) {
+                    $error = error_get_last();
+                    $message = '';
+                    if (is_array($error)) {
+                        $message = ", error: {$error['message']}";
+                    }
+                    throw new \RuntimeException("Can't create directory {$current_dir}{$message}");
                 }
-                throw new \RuntimeException("Can't create directory {$current_dir}{$message}");
             }
         }
+
+        $abs_path = str_replace( "$drive_letter:\\$drive_letter\\", "$drive_letter:\\", realpath(str_replace('/', '\\', $current_dir)));
+        return $abs_path;
     }
 
     /**
